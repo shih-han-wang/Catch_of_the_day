@@ -1,5 +1,6 @@
 var React = require('react');
 var ReactDOM = require('react-dom');
+var CSSTransitionGroup = require('react-addons-css-transition-group');
 
 var ReactRouter = require('react-router');
 var Router = ReactRouter.Router;
@@ -10,15 +11,29 @@ var createBrowserHistory = require('history/lib/createBrowserHistory');
 
 var h = require('./helpers');
 
+// Firebase
+
+// var Rebase = require('re-base');
+// var base = Rebase.createClass('https://catch-of-the-day-f4ba5.firebaseio.com');
+
+// var Catalyst = require('react-catalyst');
+
 // App
 
 var App = React.createClass({
+  // mixins: [Catalyst.LinkedStateMixin],
   getInitialState: function(){
     return {
       fishes: {},
       order: {}
     }
   },
+  // componentDidMount: function(){
+  //   base.syncState(this.props.params.storeId + '/fishes', {
+  //     context: this,
+  //     state: 'fishes'
+  //   });
+  // },
   addToOrder: function(key){
     this.state.order[key] = this.state.order[key] + 1 || 1;
     this.setState({ order: this.state.order });
@@ -46,7 +61,7 @@ var App = React.createClass({
            </ul>
          </div>
          <Order fishes={this.state.fishes} order={this.state.order}/>
-         <Inventory addFish={this.addFish} loadSamples={this.loadSamples}/>
+         <Inventory addFish={this.addFish} loadSamples={this.loadSamples} fishes={this.state.fishes} linkState={this.linkState} />
        </div>
      )
   }
@@ -142,9 +157,13 @@ var Order = React.createClass({
     }
 
     return (
-      <li>
-        {count}lbs
-        {fish.name}
+      <li key={key}>
+        <CSSTransitionGroup component="span" transitionName="count"
+          transitionLeaveTimeout={250} transitionEnterTimeout={250}>
+          <span key={count} >{count}</span>
+        </CSSTransitionGroup>
+
+        lbs{fish.name}
         <span className="price">{h.formatPrice(count * fish.price)}</span>
       </li>
     )
@@ -163,13 +182,18 @@ var Order = React.createClass({
      return(
        <div className="order-wrap">
          <h2 className="order-title">Your Order</h2>
-         <ul className="order">
+         <CSSTransitionGroup
+           className="order"
+           component="ul"
+           transitionName="order"
+           transitionEnterTimeout={1000}
+           transitionLeaveTimeout={1000}>
            {orderIds.map(this.renderOrder)}
            <li className="total">
              <strong>Total:</strong>
              {h.formatPrice(total)}
            </li>
-         </ul>
+         </CSSTransitionGroup>
        </div>
      )
   }
@@ -178,10 +202,20 @@ var Order = React.createClass({
 // Inventory
 
 var Inventory = React.createClass({
+  // renderInventory: function(){
+  //   var linkState = this.props.linkState;
+  //   return(
+  //     <div className="fish-edit" key={key}>
+  //       <input type="text" valueLink={linkState('fishes.
+  //         '+ key +'.name')} />
+  //     </div>
+  //   )
+  // },
   render: function(){
      return(
        <div>
          <h2>Inventory</h2>
+         {/* {Object.keys(this.props.fishes).map(this.renderInventory)} */}
          <AddFishForm {...this.props} />
          <button onClick={this.props.loadSamples} >Load Sample Fishes</button>
        </div>
